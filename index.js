@@ -23,39 +23,24 @@ function htmlEntities(str) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
 }
-// Array with some colors
 const colors = ['red', 'green', 'blue', 'magenta', 'purple', 'plum', 'orange'];
-// ... in random order
 colors.sort((a, b) => Math.random() > 0.5);
 /**
  * HTTP server
  */
 const server = http.createServer(() => {
-  // Not important for us. We're writing WebSocket server,
-  // not HTTP server
 });
 server.listen(webSocketsServerPort, () => {
   console.log(`${new Date()} Server is listening on port ${
     webSocketsServerPort}`);
 });
-/**
- * WebSocket server
- */
+
 const wsServer = new WebSocketServer({
-  // WebSocket server is tied to a HTTP server. WebSocket
-  // request is just an enhanced HTTP request. For more info
-  // http://tools.ietf.org/html/rfc6455#page-6
   httpServer: server,
 });
-// This callback function is called every time someone
-// tries to connect to the WebSocket server
 wsServer.on('request', async (request) => {
   console.log(`${new Date()} Connection from origin ${request.origin}.`);
-  // accept connection - you should check 'request.origin' to
-  // make sure that client is connecting from your website
-  // (http://en.wikipedia.org/wiki/Same_origin_policy)
   const connection = request.accept(null, request.origin);
-  // we need to know client index to remove them on 'close' event
   const index = clients.push(connection) - 1;
   let userName = false;
   let userColor = false;
@@ -92,7 +77,6 @@ wsServer.on('request', async (request) => {
       } else { // log and broadcast the message
         console.log(`${new Date()} Received Message from ${userName}: ${message.utf8Data}`);
 
-        // we want to keep history of all sent messages
         const obj = {
           time: (new Date()).getTime(),
           text: htmlEntities(message.utf8Data),
@@ -124,6 +108,7 @@ wsServer.on('request', async (request) => {
   try {
     const amqpConnection = await amqp.connect('amqp://localhost');
     channel = await amqpConnection.createChannel();
+    channel.assertQueue('chat', { exclusive: true });
 
     amqpConnection.on('error', (err) => {
       if (err.message !== 'Connection closing') {

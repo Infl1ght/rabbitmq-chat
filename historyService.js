@@ -20,14 +20,14 @@ amqp
   .then(conn => conn.createChannel())
   .then((ch) => {
     channel = ch;
-    return channel.assertExchange('chat', 'fanout'); // [2]
+    return channel.assertExchange('chat', 'fanout');
   })
-  .then(() => channel.assertQueue('chat_history')) // [3]
+  .then(() => channel.assertQueue('chat_history'))
   .then((q) => {
     queue = q.queue;
-    return channel.bindQueue(queue, 'chat'); // [4]
+    return channel.bindQueue(queue, 'chat');
   })
-  .then(() => channel.consume(queue, (msg) => { // [5]
+  .then(() => channel.consume(queue, (msg) => {
     const content = msg.content.toString();
     console.log(`Saving message: ${content}`);
     redisClient.lpush('messages', content, (err) => {
