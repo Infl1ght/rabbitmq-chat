@@ -13,25 +13,22 @@ http.createServer((req, res) => {
 }).listen(8090);
 
 let channel;
-let queue;
 
-amqp
-  .connect('amqp://localhost')
-  .then(conn => conn.createChannel())
-  .then((ch) => {
-    channel = ch;
-    return channel.assertExchange('chat', 'fanout');
-  })
-  .then(() => channel.assertQueue('chat_history'))
-  .then((q) => {
-    queue = q.queue;
-    return channel.bindQueue(queue, 'chat');
-  })
-  .then(() => channel.consume(queue, (msg) => {
-    const content = msg.content.toString();
-    console.log(`Saving message: ${content}`);
-    redisClient.lpush('messages', content, (err) => {
-      if (!err) channel.ack(msg);
+(async () => {
+  try {
+    const amqpConnection = await amqp.connect('amqp://localhost');
+    channel = await amqpConnection.createChannel();
+    channel.assertExchange('chat', 'fanout');
+    const { queue } = await channel.assertQueue('chat_history');
+    channel.bindQueue(queue, 'chat');
+    channel.consume(queue, (msg) => {
+      const content = msg.content.toString();
+      console.log(`Saving message: ${content}`);
+      redisClient.lpush('messages', content, (err) => {
+        if (!err) channel.ack(msg);
+      });
     });
-  }))
-  .catch(err => console.log(err));
+  } catch (e) {
+    console.error('[AMQP]', e.message);
+  }
+})();
