@@ -1,0 +1,30 @@
+{
+  "name": "rabbitmq-chat",
+  "version": "1.0.0",
+  "description": "Simple chat powered by RabbitMQ",
+  "main": "index.js",
+  "dependencies": {
+    "amqplib": "^0.5.3",
+    "monotonic-timestamp": "0.0.9",
+    "redis": "^2.8.0",
+    "websocket": "^1.0.28"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "mocha -exit"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Infl1ght/rabbitmq-chat.git"
+  },
+  "keywords": [
+    "RabbitMQ",
+    "chat"
+  ],
+  "author": "Ilya Volkov <ilya.inflight@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Infl1ght/rabbitmq-chat/issues"
+  },
+  "homepage": "https://github.com/Infl1ght/rabbitmq-chat#readme"
+}
