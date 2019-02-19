@@ -84,11 +84,6 @@ wsServer.on('request', async (request) => {
           color: userColor,
         };
         channel.publish('chat', '', Buffer.from(JSON.stringify(obj)));
-        // broadcast message to all connected clients
-        const json = JSON.stringify({ type: 'message', data: obj });
-        for (let i = 0; i < clients.length; i += 1) {
-          clients[i].sendUTF(json);
-        }
       }
     }
   });
@@ -108,7 +103,14 @@ wsServer.on('request', async (request) => {
   try {
     const amqpConnection = await amqp.connect('amqp://localhost');
     channel = await amqpConnection.createChannel();
-    channel.assertQueue('chat', { exclusive: true });
+    const { queue } = await channel.assertQueue('chat_server', { exclusive: true });
+    channel.bindQueue(queue, 'chat');
+    channel.consume(queue, (msg) => {
+      const content = JSON.parse(msg.content.toString());
+      for (let i = 0; i < clients.length; i += 1) {
+        clients[i].sendUTF(JSON.stringify({ type: 'message', data: content }));
+      }
+    });
 
     amqpConnection.on('error', (err) => {
       if (err.message !== 'Connection closing') {
